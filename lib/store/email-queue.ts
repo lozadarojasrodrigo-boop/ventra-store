@@ -8,11 +8,19 @@ const money = new Intl.NumberFormat('es-ES', {
   maximumFractionDigits: 2,
 })
 
+type QueueEventType =
+  | 'welcome_account'
+  | 'order_received'
+  | 'payment_review'
+  | 'payment_confirmed'
+  | 'order_sent'
+  | 'order_delivered'
+
 type QueueRow = {
   id: number
   auth_user_id: string | null
   pedido_web_id: number | null
-  event_type: 'order_received' | 'payment_review' | 'payment_confirmed' | 'order_sent' | 'order_delivered'
+  event_type: QueueEventType
   recipient_email: string
   payload: Record<string, unknown> | null
   status: 'pending' | 'processed' | 'failed'
@@ -52,7 +60,7 @@ function getBaseUrl() {
 }
 
 function getFromAddress() {
-  return process.env.RESEND_FROM_EMAIL || 'VENTRA <hola@ventrabolivia.com>'
+  return process.env.RESEND_FROM_EMAIL || 'VENTRA <ventas@ventrabolivia.com>'
 }
 
 function escapeHtml(value: string) {
@@ -94,7 +102,79 @@ function getStepsText(order: QueueOrder) {
   return 'Responderemos por WhatsApp para coordinar entrega o retiro y completar el pago en efectivo.'
 }
 
-function buildEmailContent(eventType: QueueRow['event_type'], order: QueueOrder) {
+function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recipientEmail: string) {
+  const baseUrl = getBaseUrl()
+  const firstName =
+    typeof payload?.first_name === 'string' && payload.first_name.trim()
+      ? payload.first_name.trim()
+      : ''
+  const fullName =
+    typeof payload?.full_name === 'string' && payload.full_name.trim()
+      ? payload.full_name.trim()
+      : ''
+  const customerName = firstName || fullName || recipientEmail.split('@')[0] || 'Cliente'
+  const accountUrl = `${baseUrl}/cuenta`
+  const profileUrl = `${baseUrl}/cuenta/perfil`
+  const favoritesUrl = `${baseUrl}/cuenta/favoritos`
+
+  const html = `
+    <div style="background:#f5f5f7;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
+      <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,113,227,0.12);border-radius:28px;overflow:hidden;">
+        <div style="padding:28px 32px;border-bottom:1px solid rgba(0,113,227,0.1);">
+          <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#6e6e73;font-weight:700;">VENTRA</div>
+          <h1 style="margin:14px 0 0;font-size:34px;line-height:1.05;">Bienvenido a VENTRA Bolivia</h1>
+          <p style="margin:16px 0 0;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, tu cuenta ya esta lista para comprar, guardar favoritos y seguir tus pedidos desde un solo lugar.</p>
+        </div>
+        <div style="padding:28px 32px;">
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+            <div style="border:1px solid rgba(0,113,227,0.1);background:#fbfcff;border-radius:18px;padding:14px 16px;">
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#86868b;font-weight:700;">Cuenta</div>
+              <div style="margin-top:8px;font-size:15px;font-weight:700;">Activa</div>
+            </div>
+            <div style="border:1px solid rgba(0,113,227,0.1);background:#fbfcff;border-radius:18px;padding:14px 16px;">
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#86868b;font-weight:700;">Correo</div>
+              <div style="margin-top:8px;font-size:15px;font-weight:700;">${escapeHtml(recipientEmail)}</div>
+            </div>
+          </div>
+          <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#fbfcff;border-radius:22px;padding:18px 20px;">
+            <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Que puedes hacer ahora</div>
+            <ul style="margin:12px 0 0;padding-left:18px;color:#424245;line-height:1.9;">
+              <li>Guardar direcciones para comprar mas rapido.</li>
+              <li>Seguir tus pedidos desde Mi cuenta.</li>
+              <li>Subir comprobantes cuando pagues por QR o transferencia.</li>
+              <li>Marcar productos como favoritos.</li>
+            </ul>
+          </div>
+          <div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:12px;">
+            <a href="${accountUrl}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Ir a mi cuenta</a>
+            <a href="${profileUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Completar perfil</a>
+            <a href="${favoritesUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Ver favoritos</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+
+  const text = [
+    'Bienvenido a VENTRA Bolivia',
+    '',
+    `Hola ${customerName}, tu cuenta ya esta lista.`,
+    'Ahora puedes guardar direcciones, seguir tus pedidos, subir comprobantes y marcar favoritos.',
+    '',
+    `Mi cuenta: ${accountUrl}`,
+    `Perfil: ${profileUrl}`,
+    `Favoritos: ${favoritesUrl}`,
+  ].join('\n')
+
+  return {
+    subject: 'Bienvenido a VENTRA Bolivia',
+    html,
+    text,
+    from: getFromAddress(),
+  }
+}
+
+function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_account'>, order: QueueOrder) {
   const methodLabel = order.metodo_pago ? formatPaymentMethodLabel(order.metodo_pago) : 'Pago'
   const statusLabel = formatWebOrderStatus(order.estado || 'pendiente')
   const totalLabel = money.format(Number(order.total || 0))
@@ -146,7 +226,6 @@ function buildEmailContent(eventType: QueueRow['event_type'], order: QueueOrder)
           <h1 style="margin:14px 0 0;font-size:34px;line-height:1.05;">${escapeHtml(title)}</h1>
           <p style="margin:16px 0 0;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, ${escapeHtml(intro)}</p>
         </div>
-
         <div style="padding:28px 32px;">
           <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
             <div style="border:1px solid rgba(0,113,227,0.1);background:#fbfcff;border-radius:18px;padding:14px 16px;">
@@ -166,12 +245,10 @@ function buildEmailContent(eventType: QueueRow['event_type'], order: QueueOrder)
               <div style="margin-top:8px;font-size:15px;font-weight:700;">${escapeHtml(totalLabel)}</div>
             </div>
           </div>
-
           <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#fbfcff;border-radius:22px;padding:18px 20px;">
             <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Siguiente paso</div>
             <p style="margin:12px 0 0;font-size:15px;line-height:1.8;color:#424245;">${escapeHtml(getStepsText(order))}</p>
           </div>
-
           <div style="margin-top:24px;">
             <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Resumen de compra</div>
             <table style="width:100%;margin-top:10px;border-collapse:collapse;">
@@ -185,12 +262,10 @@ function buildEmailContent(eventType: QueueRow['event_type'], order: QueueOrder)
               <tbody>${renderItems(order.pedido_web_items)}</tbody>
             </table>
           </div>
-
           <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#ffffff;border-radius:22px;padding:18px 20px;">
             <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Entrega</div>
             <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:#424245;">${escapeHtml(city)}<br/>${escapeHtml(address)}</p>
           </div>
-
           <div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:12px;">
             <a href="${publicOrderUrl}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Ver mi pedido</a>
             <a href="${accountOrderUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Ir a mi cuenta</a>
@@ -307,23 +382,34 @@ export async function processStoreEmailQueue(limit = 12) {
 
   for (const job of queue) {
     try {
-      if (!job.pedido_web_id) {
-        throw new Error('Missing pedido_web_id in queue job.')
-      }
+      if (job.event_type === 'welcome_account') {
+        const email = buildWelcomeEmailContent(job.payload || {}, job.recipient_email)
+        await sendEmailWithResend({
+          to: job.recipient_email,
+          subject: email.subject,
+          html: email.html,
+          text: email.text,
+          from: email.from,
+        })
+      } else {
+        if (!job.pedido_web_id) {
+          throw new Error('Missing pedido_web_id in queue job.')
+        }
 
-      const order = await getOrderForQueue(job.pedido_web_id)
-      if (!order) {
-        throw new Error('Order not found for queue job.')
-      }
+        const order = await getOrderForQueue(job.pedido_web_id)
+        if (!order) {
+          throw new Error('Order not found for queue job.')
+        }
 
-      const email = buildEmailContent(job.event_type, order)
-      await sendEmailWithResend({
-        to: job.recipient_email,
-        subject: email.subject,
-        html: email.html,
-        text: email.text,
-        from: email.from,
-      })
+        const email = buildOrderEmailContent(job.event_type, order)
+        await sendEmailWithResend({
+          to: job.recipient_email,
+          subject: email.subject,
+          html: email.html,
+          text: email.text,
+          from: email.from,
+        })
+      }
 
       await supabase
         .from('store_email_notification_queue')

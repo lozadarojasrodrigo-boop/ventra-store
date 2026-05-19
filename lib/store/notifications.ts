@@ -9,6 +9,7 @@ type NotificationPreferenceRow = {
 }
 
 type QueueEventType =
+  | 'welcome_account'
   | 'order_received'
   | 'payment_review'
   | 'payment_confirmed'
@@ -24,7 +25,7 @@ type QueuePayload = {
 }
 
 const preferenceMap: Record<
-  QueueEventType,
+  Exclude<QueueEventType, 'welcome_account'>,
   keyof NotificationPreferenceRow
 > = {
   order_received: 'email_order_received',
@@ -43,7 +44,7 @@ export async function enqueueStoreNotification(
     return
   }
 
-  if (authUserId) {
+  if (authUserId && eventType !== 'welcome_account') {
     const { data, error } = await admin
       .from('store_customer_notification_preferences')
       .select(
@@ -54,7 +55,7 @@ export async function enqueueStoreNotification(
 
     if (!error && data) {
       const row = data as NotificationPreferenceRow
-      if (row[preferenceMap[eventType]] === false) {
+      if (row[preferenceMap[eventType as Exclude<QueueEventType, 'welcome_account'>]] === false) {
         return
       }
     }

@@ -60,6 +60,22 @@ export function StoreAuthPanel() {
           return
         }
 
+        const createdUserId = data.user?.id
+        if (createdUserId) {
+          await fetch('/api/auth/welcome', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: createdUserId,
+              email,
+              firstName,
+              lastName,
+            }),
+          }).catch(() => undefined)
+        }
+
         if (!data.session) {
           setSuccessMessage('Cuenta creada. Revisa tu correo para confirmar el acceso.')
           return
