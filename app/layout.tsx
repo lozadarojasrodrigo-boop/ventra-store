@@ -16,8 +16,52 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'VENTRA Store',
-  description: 'Tienda web conectada al inventario de VENTRA',
+  metadataBase: new URL('https://ventrabolivia.com'),
+  title: {
+    default: 'VENTRA Bolivia',
+    template: '%s | VENTRA Bolivia',
+  },
+  applicationName: 'VENTRA Bolivia',
+  description: 'Compra online en VENTRA Bolivia. Descubre productos, sigue tu pedido y confirma tu compra por QR o transferencia.',
+  keywords: [
+    'VENTRA',
+    'VENTRA Bolivia',
+    'tienda online Bolivia',
+    'compras online Bolivia',
+    'QR',
+    'transferencia',
+  ],
+  icons: {
+    icon: [
+      { url: '/logoweb.png', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: [{ url: '/logoweb.png', type: 'image/png' }],
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://ventrabolivia.com',
+    siteName: 'VENTRA Bolivia',
+    title: 'VENTRA Bolivia',
+    description:
+      'Compra online en VENTRA Bolivia. Productos, pedidos y seguimiento desde una sola tienda.',
+    images: [
+      {
+        url: '/logoweb.png',
+        width: 512,
+        height: 512,
+        alt: 'VENTRA Bolivia',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'VENTRA Bolivia',
+    description:
+      'Compra online en VENTRA Bolivia. Productos, pedidos y seguimiento desde una sola tienda.',
+    images: ['/logoweb.png'],
+  },
 }
 
 export const viewport: Viewport = {
