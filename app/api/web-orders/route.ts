@@ -63,6 +63,9 @@ export async function POST(request: Request) {
   }
 
   const paymentMethod = payload?.paymentMethod
+  if (typeof paymentMethod !== 'string') {
+    return badRequest('Metodo de pago invalido.')
+  }
   if (!validPaymentMethods.has(paymentMethod)) {
     return badRequest('Metodo de pago invalido.')
   }
@@ -147,8 +150,8 @@ export async function POST(request: Request) {
     }
   })
 
-  const invalidItem = orderItems.find((item) => 'error' in item)
-  if (invalidItem && 'error' in invalidItem) {
+  const invalidItem = orderItems.find((item): item is { error: string } => 'error' in item)
+  if (invalidItem) {
     return badRequest(invalidItem.error)
   }
 

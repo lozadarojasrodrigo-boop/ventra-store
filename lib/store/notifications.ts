@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+
 type NotificationPreferenceRow = {
   email_order_received: boolean | null
   email_payment_review: boolean | null
@@ -21,19 +23,6 @@ type QueuePayload = {
   payload?: Record<string, unknown>
 }
 
-type QueryResult<T> = Promise<{ data: T; error: { message?: string } | null }>
-
-type QueryBuilder<T = unknown> = {
-  select: (columns: string) => QueryBuilder<T>
-  insert: (values: Record<string, unknown>) => QueryResult<unknown>
-  eq: (column: string, value: unknown) => QueryBuilder<T>
-  maybeSingle: () => QueryResult<T | null>
-}
-
-type AdminClient = {
-  from: (table: string) => QueryBuilder
-}
-
 const preferenceMap: Record<
   QueueEventType,
   keyof NotificationPreferenceRow
@@ -46,7 +35,7 @@ const preferenceMap: Record<
 }
 
 export async function enqueueStoreNotification(
-  admin: AdminClient,
+  admin: SupabaseClient,
   { authUserId = null, orderId = null, recipientEmail, eventType, payload = {} }: QueuePayload
 ) {
   const cleanEmail = typeof recipientEmail === 'string' ? recipientEmail.trim() : ''

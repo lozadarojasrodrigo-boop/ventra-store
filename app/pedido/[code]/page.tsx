@@ -70,6 +70,12 @@ export default async function WebOrderConfirmationPage({ params }: WebOrderPageP
     total: Number(order.total || 0),
     customerName: order.cliente_nombre || 'cliente',
     orderCode: order.codigo || code,
+    city: order.cliente_ciudad || '-',
+    address: order.cliente_direccion || '-',
+    items: (order.pedido_web_items || []).map((item) => ({
+      nombre: item.producto_nombre || 'Producto',
+      quantity: Math.max(Number(item.cantidad || 1), 1),
+    })),
   })
 
   return (
