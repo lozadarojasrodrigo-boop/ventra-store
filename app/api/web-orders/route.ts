@@ -214,6 +214,13 @@ export async function POST(request: Request) {
       metodo_pago: paymentMethod,
       total,
       cliente_nombre: nombreCompleto,
+      ciudad,
+      direccion,
+      items: orderItems.map((item) => ({
+        nombre: item.producto_nombre,
+        cantidad: item.cantidad,
+        subtotal: item.subtotal,
+      })),
     },
   })
 
