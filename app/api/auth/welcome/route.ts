@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { processStoreEmailQueueById } from '@/lib/store/email-queue'
 import { enqueueStoreNotification } from '@/lib/store/notifications'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
@@ -55,16 +56,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, skipped: true })
   }
 
-  await enqueueStoreNotification(supabase, {
-    authUserId: userId,
-    recipientEmail: email,
-    eventType: 'welcome_account',
-    payload: {
-      first_name: firstName,
-      last_name: lastName,
-      full_name: [firstName, lastName].filter(Boolean).join(' '),
-    },
-  })
+  const { data: queueInsert, error: queueInsertError } = await supabase
+    .from('store_email_notification_queue')
+    .insert({
+      auth_user_id: userId,
+      pedido_web_id: null,
+      recipient_email: email,
+      event_type: 'welcome_account',
+      payload: {
+        first_name: firstName,
+        last_name: lastName,
+        full_name: [firstName, lastName].filter(Boolean).join(' '),
+      },
+      status: 'pending',
+    })
+    .select('id')
+    .single()
 
-  return NextResponse.json({ ok: true })
+  if (queueInsertError || !queueInsert) {
+    await enqueueStoreNotification(supabase, {
+      authUserId: userId,
+      recipientEmail: email,
+      eventType: 'welcome_account',
+      payload: {
+        first_name: firstName,
+        last_name: lastName,
+        full_name: [firstName, lastName].filter(Boolean).join(' '),
+      },
+    })
+
+    return NextResponse.json({ ok: true, queued: true })
+  }
+
+  try {
+    await processStoreEmailQueueById(queueInsert.id)
+  } catch {
+    return NextResponse.json({ ok: true, queued: true })
+  }
+
+  return NextResponse.json({ ok: true, sent: true })
 }

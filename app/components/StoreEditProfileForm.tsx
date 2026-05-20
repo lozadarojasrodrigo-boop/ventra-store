@@ -19,6 +19,8 @@ export function StoreEditProfileForm({ initialProfile }: StoreEditProfileFormPro
   const router = useRouter()
   const [form, setForm] = useState(initialProfile)
   const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -69,6 +71,39 @@ export function StoreEditProfileForm({ initialProfile }: StoreEditProfileFormPro
       router.refresh()
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return
+
+    setDeleting(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      const response = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          confirmation: deleteConfirmation,
+        }),
+      })
+
+      const data = (await response.json().catch(() => null)) as { error?: string } | null
+
+      if (!response.ok) {
+        setErrorMessage(data?.error || 'No se pudo eliminar la cuenta.')
+        return
+      }
+
+      await supabaseBrowser.auth.signOut()
+      router.push('/')
+      router.refresh()
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -130,6 +165,40 @@ export function StoreEditProfileForm({ initialProfile }: StoreEditProfileFormPro
       >
         {submitting ? 'Guardando...' : 'Guardar cambios'}
       </button>
+
+      <div className="mt-8 rounded-[24px] border border-[#d84c3a]/12 bg-[#fff8f6] p-5">
+        <p className="text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-[#b65243]">
+          Zona delicada
+        </p>
+        <h3 className="mt-2 text-[1.05rem] font-semibold text-[#1d1d1f]">Eliminar cuenta</h3>
+        <p className="mt-2 text-[0.94rem] leading-7 text-[#6e6e73]">
+          Esta accion elimina tu acceso a la tienda y no se puede deshacer. Escribe
+          <span className="mx-1 font-semibold text-[#1d1d1f]">ELIMINAR</span>
+          para confirmar.
+        </p>
+
+        <label className="mt-4 block">
+          <span className="text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-[#86868b]">
+            Confirmacion
+          </span>
+          <input
+            type="text"
+            value={deleteConfirmation}
+            onChange={(event) => setDeleteConfirmation(event.target.value)}
+            placeholder="Escribe ELIMINAR"
+            className="mt-2 min-h-[3rem] w-full rounded-[18px] border border-[#d84c3a]/14 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#d84c3a]/35"
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={deleting || deleteConfirmation.trim().toUpperCase() !== 'ELIMINAR'}
+          className="mt-4 inline-flex min-h-[3rem] items-center justify-center rounded-full bg-[#d84c3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#c94333] disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {deleting ? 'Eliminando...' : 'Eliminar cuenta'}
+        </button>
+      </div>
     </article>
   )
 }

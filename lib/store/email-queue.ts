@@ -439,3 +439,76 @@ export async function processStoreEmailQueue(limit = 12) {
     failed,
   }
 }
+
+export async function processStoreEmailQueueById(queueId: number) {
+  const supabase = getSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('store_email_notification_queue')
+    .select('id,auth_user_id,pedido_web_id,event_type,recipient_email,payload,status')
+    .eq('id', queueId)
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  const job = (data || null) as QueueRow | null
+  if (!job) {
+    return { ok: false, reason: 'not_found' as const }
+  }
+
+  if (job.status !== 'pending') {
+    return { ok: true, skipped: true as const, status: job.status }
+  }
+
+  try {
+    if (job.event_type === 'welcome_account') {
+      const email = buildWelcomeEmailContent(job.payload || {}, job.recipient_email)
+      await sendEmailWithResend({
+        to: job.recipient_email,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+        from: email.from,
+      })
+    } else {
+      if (!job.pedido_web_id) {
+        throw new Error('Missing pedido_web_id in queue job.')
+      }
+
+      const order = await getOrderForQueue(job.pedido_web_id)
+      if (!order) {
+        throw new Error('Order not found for queue job.')
+      }
+
+      const email = buildOrderEmailContent(job.event_type, order)
+      await sendEmailWithResend({
+        to: job.recipient_email,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+        from: email.from,
+      })
+    }
+
+    await supabase
+      .from('store_email_notification_queue')
+      .update({ status: 'processed' })
+      .eq('id', job.id)
+
+    return { ok: true, processed: 1 }
+  } catch (sendError) {
+    await supabase
+      .from('store_email_notification_queue')
+      .update({
+        status: 'failed',
+        payload: {
+          ...(job.payload || {}),
+          last_error: sendError instanceof Error ? sendError.message : 'Unknown send error',
+        },
+      })
+      .eq('id', job.id)
+
+    throw sendError
+  }
+}
