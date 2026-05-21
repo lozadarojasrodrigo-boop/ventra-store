@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js'
 import { useCart } from '@/app/components/CartProvider'
 import { StoreFooter } from '@/app/components/StoreFooter'
 import { StoreHeader } from '@/app/components/StoreHeader'
+import { BOLIVIA_CITY_OPTIONS } from '@/lib/store/cities'
 import { buildStoreWhatsAppHref } from '@/lib/store/payment-config'
 import type { CreateWebOrderResponse, StorePaymentMethod } from '@/lib/store/web-orders'
 import { supabaseBrowser } from '@/lib/supabase/browser'
@@ -269,11 +270,12 @@ export function CheckoutPageClient() {
                     value={customer.telefono}
                     onChange={(value) => setCustomer((current) => ({ ...current, telefono: value }))}
                   />
-                  <Field
+                  <SelectField
                     label="Ciudad"
-                    placeholder="Tu ciudad"
+                    placeholder="Selecciona tu ciudad"
                     value={customer.ciudad}
                     onChange={(value) => setCustomer((current) => ({ ...current, ciudad: value }))}
+                    options={BOLIVIA_CITY_OPTIONS}
                   />
                   <Field
                     label="Dirección de entrega"
@@ -392,6 +394,40 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         className="mt-2 min-h-[3rem] w-full rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35"
       />
+    </label>
+  )
+}
+
+function SelectField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  placeholder: string
+  value: string
+  onChange: (value: string) => void
+  options: readonly string[]
+}) {
+  return (
+    <label className="block">
+      <span className="text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-[#86868b]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="store-select mt-2 min-h-[3rem] w-full rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35 focus:bg-[#fbfdff]"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
     </label>
   )
 }

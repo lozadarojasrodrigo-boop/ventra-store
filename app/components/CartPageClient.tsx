@@ -172,7 +172,7 @@ export function CartPageClient() {
 
               <Link
                 href="/checkout"
-                className="mt-6 inline-flex min-h-[3.2rem] w-full items-center justify-center rounded-full bg-[#0071e3] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0077ed]"
+                className="mt-6 inline-flex min-h-[3.2rem] w-full items-center justify-center rounded-full bg-[#0071e3] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0077ed] hover:text-white"
               >
                 Continuar al checkout
               </Link>

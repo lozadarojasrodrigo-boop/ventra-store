@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { enqueueStoreNotification } from '@/lib/store/notifications'
+import { processStoreEmailQueueById } from '@/lib/store/email-queue'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import type {
   CreateWebOrderPayload,
@@ -13,6 +14,7 @@ type ProductRow = {
   id: number
   nombre: string | null
   sku: string | null
+  imagen_url: string | null
   precio_venta: number | null
   stock_actual: number | null
   activo: boolean | null
@@ -102,7 +104,7 @@ export async function POST(request: Request) {
 
   const { data: productRows, error: productError } = await supabase
     .from('productos')
-    .select('id,nombre,sku,precio_venta,stock_actual,activo,estado_publicacion')
+    .select('id,nombre,sku,imagen_url,precio_venta,stock_actual,activo,estado_publicacion')
     .in('id', productIds)
     .neq('activo', false)
 
@@ -144,6 +146,7 @@ export async function POST(request: Request) {
       producto_id: product.id,
       producto_nombre: product.nombre || 'Producto',
       producto_sku: product.sku,
+      producto_imagen_url: product.imagen_url,
       cantidad: item.quantity,
       precio_unitario: price,
       subtotal: lineSubtotal,
@@ -154,6 +157,15 @@ export async function POST(request: Request) {
   if (invalidItem) {
     return badRequest(invalidItem.error)
   }
+
+  const normalizedOrderItems = orderItems.map((item) => ({
+    producto_id: item.producto_id,
+    producto_nombre: item.producto_nombre,
+    producto_sku: item.producto_sku,
+    cantidad: item.cantidad,
+    precio_unitario: item.precio_unitario,
+    subtotal: item.subtotal,
+  }))
 
   const total = subtotal
 
@@ -184,7 +196,7 @@ export async function POST(request: Request) {
   const orderCode = buildOrderCode(orderId)
 
   const { error: itemInsertError } = await supabase.from('pedido_web_items').insert(
-    orderItems.map((item) => ({
+    normalizedOrderItems.map((item) => ({
       pedido_web_id: orderId,
       ...item,
     }))
@@ -204,25 +216,56 @@ export async function POST(request: Request) {
     return badRequest('El pedido se creo, pero no se pudo finalizar su codigo.', 500)
   }
 
-  await enqueueStoreNotification(supabase, {
-    authUserId: user?.id ?? null,
-    orderId,
-    recipientEmail: correo,
-    eventType: 'order_received',
-    payload: {
-      codigo: orderCode,
-      metodo_pago: paymentMethod,
-      total,
-      cliente_nombre: nombreCompleto,
-      ciudad,
-      direccion,
-      items: orderItems.map((item) => ({
-        nombre: item.producto_nombre,
-        cantidad: item.cantidad,
-        subtotal: item.subtotal,
-      })),
-    },
-  })
+  const { data: queueInsert, error: queueInsertError } = await supabase
+    .from('store_email_notification_queue')
+    .insert({
+      auth_user_id: user?.id ?? null,
+      pedido_web_id: orderId,
+      recipient_email: correo,
+      event_type: 'order_received',
+      payload: {
+        codigo: orderCode,
+        metodo_pago: paymentMethod,
+        total,
+        cliente_nombre: nombreCompleto,
+        ciudad,
+        direccion,
+        items: orderItems.map((item) => ({
+          nombre: item.producto_nombre,
+          cantidad: item.cantidad,
+          subtotal: item.subtotal,
+          imagen_url: item.producto_imagen_url,
+        })),
+      },
+      status: 'pending',
+    })
+    .select('id')
+    .single()
+
+  if (!queueInsertError && queueInsert) {
+    void processStoreEmailQueueById(queueInsert.id).catch(() => undefined)
+  } else {
+    await enqueueStoreNotification(supabase, {
+      authUserId: user?.id ?? null,
+      orderId,
+      recipientEmail: correo,
+      eventType: 'order_received',
+      payload: {
+        codigo: orderCode,
+        metodo_pago: paymentMethod,
+        total,
+        cliente_nombre: nombreCompleto,
+        ciudad,
+        direccion,
+        items: orderItems.map((item) => ({
+          nombre: item.producto_nombre,
+          cantidad: item.cantidad,
+          subtotal: item.subtotal,
+          imagen_url: item.producto_imagen_url,
+        })),
+      },
+    })
+  }
 
   return NextResponse.json<CreateWebOrderResponse>({
     ok: true,

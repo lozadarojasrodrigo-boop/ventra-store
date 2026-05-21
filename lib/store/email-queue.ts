@@ -45,6 +45,13 @@ type QueueOrder = {
     | null
 }
 
+type QueuePayloadItem = {
+  nombre?: string
+  cantidad?: number
+  subtotal?: number
+  imagen_url?: string | null
+}
+
 function getBaseUrl() {
   const direct =
     process.env.NEXT_PUBLIC_SITE_URL ||
@@ -83,6 +90,37 @@ function renderItems(items: QueueOrder['pedido_web_items']) {
       const quantity = Math.max(Number(item.cantidad || 1), 1)
       const subtotal = money.format(Number(item.subtotal || 0))
       return `<tr><td style="padding:10px 0;border-bottom:1px solid #e8eef7;color:#1d1d1f;">${name}</td><td style="padding:10px 0;border-bottom:1px solid #e8eef7;color:#6e6e73;text-align:center;">${quantity}</td><td style="padding:10px 0;border-bottom:1px solid #e8eef7;color:#1d1d1f;text-align:right;">${subtotal}</td></tr>`
+    })
+    .join('')
+}
+
+function renderPayloadItems(items: QueuePayloadItem[] = []) {
+  return items
+    .map((item) => {
+      const name = escapeHtml(item.nombre || 'Producto')
+      const quantity = Math.max(Number(item.cantidad || 1), 1)
+      const subtotal = money.format(Number(item.subtotal || 0))
+      const imageUrl =
+        typeof item.imagen_url === 'string' && item.imagen_url.trim() ? item.imagen_url.trim() : ''
+
+      return `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e8eef7;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              ${
+                imageUrl
+                  ? `<img src="${escapeHtml(imageUrl)}" alt="${name}" style="width:56px;height:56px;object-fit:contain;border-radius:14px;background:#f5f5f7;border:1px solid rgba(0,113,227,0.08);padding:6px;" />`
+                  : ''
+              }
+              <div>
+                <div style="color:#1d1d1f;font-weight:700;">${name}</div>
+                <div style="color:#6e6e73;font-size:13px;">Cantidad: ${quantity}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding:12px 0;border-bottom:1px solid #e8eef7;color:#1d1d1f;text-align:right;font-weight:700;">${subtotal}</td>
+        </tr>
+      `
     })
     .join('')
 }
@@ -185,7 +223,11 @@ function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recip
   }
 }
 
-function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_account'>, order: QueueOrder) {
+function buildOrderEmailContent(
+  eventType: Exclude<QueueEventType, 'welcome_account'>,
+  order: QueueOrder,
+  payloadItems: QueuePayloadItem[] = []
+) {
   const baseUrl = getBaseUrl()
   const logoUrl = `${baseUrl}/logoweb.png`
   const methodLabel = order.metodo_pago ? formatPaymentMethodLabel(order.metodo_pago) : 'Pago'
@@ -210,7 +252,6 @@ function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_acco
           })),
         })
       : null
-
   let title = 'Actualizacion de tu pedido'
   let intro = `Tu pedido ${order.codigo || `#${order.id}`} sigue avanzando correctamente.`
 
@@ -269,11 +310,10 @@ function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_acco
               <thead>
                 <tr>
                   <th style="padding:0 0 10px;text-align:left;font-size:12px;color:#86868b;">Producto</th>
-                  <th style="padding:0 0 10px;text-align:center;font-size:12px;color:#86868b;">Cant.</th>
                   <th style="padding:0 0 10px;text-align:right;font-size:12px;color:#86868b;">Subtotal</th>
                 </tr>
               </thead>
-              <tbody>${renderItems(order.pedido_web_items)}</tbody>
+              <tbody>${payloadItems.length > 0 ? renderPayloadItems(payloadItems) : renderItems(order.pedido_web_items)}</tbody>
             </table>
           </div>
           <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#ffffff;border-radius:22px;padding:18px 20px;">
@@ -424,7 +464,11 @@ export async function processStoreEmailQueue(limit = 12) {
           throw new Error('Order not found for queue job.')
         }
 
-        const email = buildOrderEmailContent(job.event_type, order)
+        const email = buildOrderEmailContent(
+          job.event_type,
+          order,
+          Array.isArray(job.payload?.items) ? (job.payload.items as QueuePayloadItem[]) : []
+        )
         await sendEmailWithResend({
           to: job.recipient_email,
           subject: email.subject,
@@ -506,7 +550,11 @@ export async function processStoreEmailQueueById(queueId: number) {
         throw new Error('Order not found for queue job.')
       }
 
-      const email = buildOrderEmailContent(job.event_type, order)
+      const email = buildOrderEmailContent(
+        job.event_type,
+        order,
+        Array.isArray(job.payload?.items) ? (job.payload.items as QueuePayloadItem[]) : []
+      )
       await sendEmailWithResend({
         to: job.recipient_email,
         subject: email.subject,
