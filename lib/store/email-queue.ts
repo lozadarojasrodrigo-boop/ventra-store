@@ -63,6 +63,10 @@ function getFromAddress() {
   return process.env.RESEND_FROM_EMAIL || 'VENTRA <ventas@ventrabolivia.com>'
 }
 
+function getReplyToAddress() {
+  return process.env.RESEND_REPLY_TO_EMAIL || 'ventrabolivia@gmail.com'
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -104,6 +108,7 @@ function getStepsText(order: QueueOrder) {
 
 function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recipientEmail: string) {
   const baseUrl = getBaseUrl()
+  const logoUrl = `${baseUrl}/logoweb.png`
   const firstName =
     typeof payload?.first_name === 'string' && payload.first_name.trim()
       ? payload.first_name.trim()
@@ -120,10 +125,11 @@ function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recip
   const html = `
     <div style="background:#f5f5f7;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
       <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,113,227,0.12);border-radius:28px;overflow:hidden;">
-        <div style="padding:28px 32px;border-bottom:1px solid rgba(0,113,227,0.1);">
-          <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#6e6e73;font-weight:700;">VENTRA</div>
-          <h1 style="margin:14px 0 0;font-size:34px;line-height:1.05;">Bienvenido a VENTRA Bolivia</h1>
-          <p style="margin:16px 0 0;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, tu cuenta ya esta lista para comprar, guardar favoritos y seguir tus pedidos desde un solo lugar.</p>
+        <div style="padding:34px 32px 28px;border-bottom:1px solid rgba(0,113,227,0.1);text-align:center;">
+          <img src="${logoUrl}" alt="VENTRA" style="display:block;width:88px;height:auto;margin:0 auto 18px;" />
+          <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#6e6e73;font-weight:700;">VENTRA BOLIVIA</div>
+          <h1 style="margin:14px 0 0;font-size:34px;line-height:1.05;">Tu cuenta ya esta lista</h1>
+          <p style="margin:16px auto 0;max-width:520px;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, te damos la bienvenida a una experiencia de compra mas clara, rapida y organizada dentro de VENTRA.</p>
         </div>
         <div style="padding:28px 32px;">
           <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
@@ -145,11 +151,16 @@ function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recip
               <li>Marcar productos como favoritos.</li>
             </ul>
           </div>
+          <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#ffffff;border-radius:22px;padding:18px 20px;">
+            <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Recomendacion</div>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.8;color:#424245;">Anade tu ciudad y tus datos completos en el perfil para acelerar el checkout y recibir mejor seguimiento de tus pedidos.</p>
+          </div>
           <div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:12px;">
             <a href="${accountUrl}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Ir a mi cuenta</a>
             <a href="${profileUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Completar perfil</a>
             <a href="${favoritesUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Ver favoritos</a>
           </div>
+          <p style="margin:22px 0 0;font-size:13px;line-height:1.8;color:#86868b;">Este correo fue enviado por VENTRA Bolivia a ${escapeHtml(recipientEmail)}.</p>
         </div>
       </div>
     </div>
@@ -175,6 +186,8 @@ function buildWelcomeEmailContent(payload: Record<string, unknown> | null, recip
 }
 
 function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_account'>, order: QueueOrder) {
+  const baseUrl = getBaseUrl()
+  const logoUrl = `${baseUrl}/logoweb.png`
   const methodLabel = order.metodo_pago ? formatPaymentMethodLabel(order.metodo_pago) : 'Pago'
   const statusLabel = formatWebOrderStatus(order.estado || 'pendiente')
   const totalLabel = money.format(Number(order.total || 0))
@@ -221,10 +234,11 @@ function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_acco
   const html = `
     <div style="background:#f5f5f7;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f;">
       <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,113,227,0.12);border-radius:28px;overflow:hidden;">
-        <div style="padding:28px 32px;border-bottom:1px solid rgba(0,113,227,0.1);">
-          <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#6e6e73;font-weight:700;">VENTRA</div>
+        <div style="padding:34px 32px 28px;border-bottom:1px solid rgba(0,113,227,0.1);text-align:center;">
+          <img src="${logoUrl}" alt="VENTRA" style="display:block;width:88px;height:auto;margin:0 auto 18px;" />
+          <div style="font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#6e6e73;font-weight:700;">VENTRA BOLIVIA</div>
           <h1 style="margin:14px 0 0;font-size:34px;line-height:1.05;">${escapeHtml(title)}</h1>
-          <p style="margin:16px 0 0;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, ${escapeHtml(intro)}</p>
+          <p style="margin:16px auto 0;max-width:540px;font-size:16px;line-height:1.8;color:#424245;">Hola ${escapeHtml(customerName)}, ${escapeHtml(intro)}</p>
         </div>
         <div style="padding:28px 32px;">
           <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
@@ -266,11 +280,16 @@ function buildOrderEmailContent(eventType: Exclude<QueueEventType, 'welcome_acco
             <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Entrega</div>
             <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:#424245;">${escapeHtml(city)}<br/>${escapeHtml(address)}</p>
           </div>
+          <div style="margin-top:24px;border:1px solid rgba(0,113,227,0.1);background:#ffffff;border-radius:22px;padding:18px 20px;">
+            <div style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#86868b;font-weight:700;">Soporte</div>
+            <p style="margin:12px 0 0;font-size:15px;line-height:1.8;color:#424245;">Si respondes este correo o escribes a ventrabolivia@gmail.com, te ayudaremos con tu pedido.</p>
+          </div>
           <div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:12px;">
             <a href="${publicOrderUrl}" style="display:inline-block;background:#0071e3;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Ver mi pedido</a>
             <a href="${accountOrderUrl}" style="display:inline-block;background:#ffffff;color:#1d1d1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;border:1px solid rgba(0,113,227,0.1);">Ir a mi cuenta</a>
             ${whatsappHref ? `<a href="${whatsappHref}" style="display:inline-block;background:#25D366;color:#083a1f;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Continuar por WhatsApp</a>` : ''}
           </div>
+          <p style="margin:22px 0 0;font-size:13px;line-height:1.8;color:#86868b;">Este correo fue enviado por VENTRA Bolivia a ${escapeHtml(order.cliente_correo || '')}.</p>
         </div>
       </div>
     </div>
@@ -330,12 +349,14 @@ async function sendEmailWithResend({
   html,
   text,
   from,
+  replyTo,
 }: {
   to: string
   subject: string
   html: string
   text: string
   from: string
+  replyTo: string
 }) {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -351,6 +372,7 @@ async function sendEmailWithResend({
     body: JSON.stringify({
       from,
       to: [to],
+      reply_to: [replyTo],
       subject,
       html,
       text,
@@ -390,6 +412,7 @@ export async function processStoreEmailQueue(limit = 12) {
           html: email.html,
           text: email.text,
           from: email.from,
+          replyTo: getReplyToAddress(),
         })
       } else {
         if (!job.pedido_web_id) {
@@ -408,6 +431,7 @@ export async function processStoreEmailQueue(limit = 12) {
           html: email.html,
           text: email.text,
           from: email.from,
+          replyTo: getReplyToAddress(),
         })
       }
 
@@ -470,6 +494,7 @@ export async function processStoreEmailQueueById(queueId: number) {
         html: email.html,
         text: email.text,
         from: email.from,
+        replyTo: getReplyToAddress(),
       })
     } else {
       if (!job.pedido_web_id) {
@@ -488,6 +513,7 @@ export async function processStoreEmailQueueById(queueId: number) {
         html: email.html,
         text: email.text,
         from: email.from,
+        replyTo: getReplyToAddress(),
       })
     }
 

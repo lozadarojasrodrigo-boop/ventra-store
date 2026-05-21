@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { BOLIVIA_CITY_OPTIONS } from '@/lib/store/cities'
 import { supabaseBrowser } from '@/lib/supabase/browser'
 
 type StoreEditProfileFormProps = {
@@ -129,12 +130,14 @@ export function StoreEditProfileForm({ initialProfile }: StoreEditProfileFormPro
           placeholder="Tu celular"
           type="tel"
         />
-        <Field
+        <SelectField
           label="Ciudad"
           value={form.ciudad}
           onChange={(value) => setForm((current) => ({ ...current, ciudad: value }))}
-          placeholder="Tu ciudad"
+          placeholder="Selecciona tu ciudad"
+          options={BOLIVIA_CITY_OPTIONS}
         />
+        
         <Field
           label="Correo"
           value={form.correo}
@@ -230,6 +233,40 @@ function Field({
         placeholder={placeholder}
         className="mt-2 min-h-[3rem] w-full rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35"
       />
+    </label>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+  options: readonly string[]
+}) {
+  return (
+    <label className="block">
+      <span className="text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-[#86868b]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 min-h-[3rem] w-full appearance-none rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
     </label>
   )
 }

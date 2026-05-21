@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { BOLIVIA_CITY_OPTIONS } from '@/lib/store/cities'
 import { supabaseBrowser } from '@/lib/supabase/browser'
 
 type AuthMode = 'signin' | 'signup'
@@ -136,7 +137,13 @@ export function StoreAuthPanel() {
             <Field label="Nombre" placeholder="Tu nombre" value={firstName} onChange={setFirstName} />
             <Field label="Apellido" placeholder="Tu apellido" value={lastName} onChange={setLastName} />
             <Field label="Celular" placeholder="Tu celular" value={phone} onChange={setPhone} type="tel" />
-            <Field label="Ciudad" placeholder="Tu ciudad" value={city} onChange={setCity} />
+            <SelectField
+              label="Ciudad"
+              value={city}
+              onChange={setCity}
+              options={BOLIVIA_CITY_OPTIONS}
+              placeholder="Selecciona tu ciudad"
+            />
           </div>
         ) : null}
         <Field
@@ -230,6 +237,40 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         className="mt-2 min-h-[3rem] w-full rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35"
       />
+    </label>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: readonly string[]
+  placeholder: string
+}) {
+  return (
+    <label className="block">
+      <span className="text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-[#86868b]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 min-h-[3rem] w-full appearance-none rounded-[18px] border border-[#0071e3]/10 bg-white px-4 text-[0.96rem] text-[#1d1d1f] outline-none focus:border-[#0071e3]/35"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
     </label>
   )
 }
