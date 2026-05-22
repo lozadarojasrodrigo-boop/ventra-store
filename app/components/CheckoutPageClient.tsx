@@ -158,7 +158,7 @@ export function CheckoutPageClient() {
   if (!hydrated) {
     return (
       <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
-        <section className="mx-auto max-w-[1440px] px-4 py-10 md:px-8 xl:px-12">
+        <section className="mx-auto max-w-[1440px] px-3 py-6 md:px-6 md:py-8 xl:px-12">
           <div className="rounded-[28px] border border-[#0071e3]/10 bg-white p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <p className="text-[1rem] font-semibold text-[#1d1d1f]">Cargando checkout...</p>
           </div>
@@ -180,12 +180,12 @@ export function CheckoutPageClient() {
         }
       />
 
-      <section className="store-shell py-6">
+      <section className="store-shell py-4 md:py-6">
         <div className="text-center">
           <p className="text-[0.86rem] font-semibold uppercase tracking-[0.22em] text-[#86868b]">
             Checkout
           </p>
-          <h1 className="mt-3 text-[2.35rem] font-semibold tracking-[-0.05em] text-[#1d1d1f] md:text-[4.2rem]">
+          <h1 className="mt-2.5 text-[1.95rem] font-semibold tracking-[-0.05em] text-[#1d1d1f] md:mt-3 md:text-[4.2rem]">
             Completa tu pedido
           </h1>
           <p className="mx-auto mt-4 max-w-[34rem] text-[0.98rem] leading-8 text-[#424245]">
@@ -207,8 +207,8 @@ export function CheckoutPageClient() {
             </Link>
           </div>
         ) : (
-          <div className="mt-8 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-            <aside className="rounded-[28px] border border-[#0071e3]/10 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+          <div className="mt-6 grid gap-4 md:gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+            <aside className="rounded-[20px] border border-[#0071e3]/10 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:rounded-[28px] md:p-6">
               <p className="text-[0.78rem] font-semibold uppercase tracking-[0.2em] text-[#86868b]">
                 Resumen
               </p>
@@ -251,7 +251,7 @@ export function CheckoutPageClient() {
             </aside>
 
             <section>
-              <article className="rounded-[28px] border border-[#0071e3]/10 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+              <article className="rounded-[20px] border border-[#0071e3]/10 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:rounded-[28px] md:p-6">
                 <h2 className="text-[1.8rem] font-semibold tracking-[-0.04em] text-[#1d1d1f]">
                   Datos y pago
                 </h2>

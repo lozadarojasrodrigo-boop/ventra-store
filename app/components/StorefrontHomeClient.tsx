@@ -45,12 +45,12 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
         searchSlot={<StoreSearchBox products={products} />}
       />
 
-      <section className="store-section store-shell pt-6">
+      <section className="store-section store-shell pt-4 md:pt-6">
         <div className="text-center">
           <p className="text-[0.84rem] font-semibold uppercase tracking-[0.22em] text-[#86868b]">
             VENTRA Store
           </p>
-          <h1 className="mx-auto mt-3 max-w-[12ch] text-[2.7rem] font-semibold leading-[0.95] tracking-[-0.05em] text-[#1d1d1f] md:text-[5.2rem]">
+          <h1 className="mx-auto mt-2.5 max-w-[12ch] text-[2.15rem] font-semibold leading-[0.96] tracking-[-0.05em] text-[#1d1d1f] md:mt-3 md:text-[5.2rem]">
             Productos nuevos.
             <br />
             Compra directa.
@@ -60,7 +60,7 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
 
       <section
         id="destacados"
-        className="store-section store-delay-1 store-shell py-6"
+        className="store-section store-delay-1 store-shell py-4 md:py-6"
       >
         <div className="space-y-4">
           {heroProducts[0] ? (
@@ -89,22 +89,22 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
 
       <section
         id="categorias"
-        className="store-section store-delay-2 store-shell py-4"
+        className="store-section store-delay-2 store-shell py-3.5 md:py-4"
       >
-        <div className="rounded-[30px] border border-[#0071e3]/10 bg-white px-6 py-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:px-8">
+        <div className="rounded-[22px] border border-[#0071e3]/10 bg-white px-4 py-5 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:rounded-[30px] md:px-8 md:py-7">
           <p className="text-[0.82rem] font-semibold uppercase tracking-[0.2em] text-[#86868b]">
             Categorías
           </p>
           <h2 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#1d1d1f] md:text-[3rem]">
             Explora por sección
           </h2>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3 md:mt-7 md:gap-3">
             {categories.map((category, index) => (
               <button
                 key={category}
                 type="button"
                 onClick={() => router.push(`/buscar?q=${encodeURIComponent(category)}`)}
-                className={`group rounded-[22px] border border-[#0071e3]/12 bg-white px-5 py-5 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#0071e3]/28 hover:bg-[#f7fbff] ${
+                className={`group rounded-[18px] border border-[#0071e3]/12 bg-white px-4 py-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#0071e3]/28 hover:bg-[#f7fbff] md:rounded-[22px] md:px-5 md:py-5 ${
                   index === 0 ? 'sm:col-span-2 xl:col-span-1' : ''
                 }`}
               >
@@ -139,7 +139,7 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
 
       <section
         id="catalogo"
-        className="store-section store-delay-3 store-shell py-4 pb-10"
+        className="store-section store-delay-3 store-shell py-3.5 pb-8 md:py-4 md:pb-10"
       >
         <div className="text-center">
           <p className="text-[0.84rem] font-semibold uppercase tracking-[0.22em] text-[#86868b]">
@@ -155,7 +155,7 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
             <p className="text-[1.05rem] font-semibold text-[#1d1d1f]">No encontramos resultados.</p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-3 md:mt-8 md:gap-4 md:grid-cols-2 xl:grid-cols-4">
             {filteredProducts.map((product) => (
               <StoreGridCard key={product.id} product={product} />
             ))}
@@ -165,16 +165,16 @@ export function StorefrontHomeClient({ products }: StorefrontHomeClientProps) {
 
       <section
         id="pagos"
-        className="store-section store-delay-4 store-shell pb-12"
+        className="store-section store-delay-4 store-shell pb-8 md:pb-12"
       >
-        <article className="rounded-[30px] border border-[#0071e3]/10 bg-white px-6 py-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:px-10">
+        <article className="rounded-[22px] border border-[#0071e3]/10 bg-white px-4 py-5 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:rounded-[30px] md:px-10 md:py-8">
           <p className="text-[0.84rem] font-semibold uppercase tracking-[0.22em] text-[#86868b]">
             Formas de pago
           </p>
           <h2 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#1d1d1f] md:text-[3rem]">
             QR y transferencia
           </h2>
-          <div className="mt-8 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="mt-5 grid gap-3 md:mt-8 md:gap-4 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="grid gap-4 sm:grid-cols-2">
               <PaymentCard
                 title="QR"

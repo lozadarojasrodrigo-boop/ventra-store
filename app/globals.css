@@ -36,6 +36,18 @@ body {
   padding-inline: clamp(1rem, 2.8vw, 3rem);
 }
 
+@media (max-width: 640px) {
+  .store-shell {
+    padding-inline: 0.72rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .store-shell {
+    padding-inline: 1rem;
+  }
+}
+
 @media (min-width: 1400px) {
   .store-shell {
     padding-inline: 3.5rem;
@@ -238,5 +250,28 @@ a:hover {
   select,
   textarea {
     font-size: 16px !important;
+  }
+
+  .store-panel {
+    border-radius: 22px;
+  }
+
+  .store-soft-panel {
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .store-section {
+    animation-duration: 0.55s;
+  }
+
+  .store-panel {
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
+  }
+
+  .store-soft-panel {
+    border-radius: 16px;
   }
 }

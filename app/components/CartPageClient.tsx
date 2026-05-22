@@ -18,12 +18,12 @@ export function CartPageClient() {
     <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
       <StoreHeader />
 
-      <section className="store-section mx-auto max-w-[1440px] px-4 py-6 md:px-8 xl:px-12">
+      <section className="store-section mx-auto max-w-[1440px] px-3 py-4 md:px-6 md:py-5 xl:px-12">
         <div className="text-center">
           <p className="text-[0.86rem] font-semibold uppercase tracking-[0.22em] text-[#86868b]">
             Tu carrito
           </p>
-          <h1 className="mt-3 text-[2.5rem] font-semibold tracking-[-0.05em] text-[#1d1d1f] md:text-[4.6rem]">
+          <h1 className="mt-2.5 text-[2rem] font-semibold tracking-[-0.05em] text-[#1d1d1f] md:mt-3 md:text-[4.6rem]">
             Revisa tu compra
           </h1>
           <p className="mx-auto mt-4 max-w-[42rem] text-[1rem] leading-8 text-[#424245]">
@@ -61,12 +61,12 @@ export function CartPageClient() {
             </Link>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="mt-6 grid gap-4 md:gap-5 xl:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-4">
               {items.map((item) => (
                 <article
                   key={item.id}
-                  className="grid gap-5 rounded-[30px] border border-[#0071e3]/10 bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:grid-cols-[8.5rem_1fr]"
+                  className="grid gap-4 rounded-[20px] border border-[#0071e3]/10 bg-white p-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:grid-cols-[8.5rem_1fr] md:gap-5 md:rounded-[30px] md:p-5"
                 >
                   <div className="overflow-hidden rounded-[24px] bg-[#f5f5f7]">
                     {item.imagen_url ? (
@@ -145,7 +145,7 @@ export function CartPageClient() {
               ))}
             </div>
 
-            <aside className="rounded-[30px] border border-[#0071e3]/10 bg-white p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
+            <aside className="rounded-[20px] border border-[#0071e3]/10 bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:rounded-[30px] md:p-7">
               <p className="text-[0.78rem] font-semibold uppercase tracking-[0.2em] text-[#86868b]">
                 Resumen
               </p>
